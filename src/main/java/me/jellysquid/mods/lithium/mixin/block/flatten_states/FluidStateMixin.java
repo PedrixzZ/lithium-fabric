@@ -6,7 +6,6 @@ import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.state.property.Property;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -22,15 +21,14 @@ public abstract class FluidStateMixin {
     @Inject(method = "<init>(Lnet/minecraft/fluid/Fluid;Lcom/google/common/collect/ImmutableMap;Lcom/mojang/serialization/MapCodec;)V", at = @At("RETURN"))
     private void initFluidCache(Fluid fluid, ImmutableMap<Property<?>, Comparable<?>> propertyMap,
                                 MapCodec<FluidState> codec, CallbackInfo ci) {
-        this.isEmptyCache = this.getFluid().isEmpty();
+        this.isEmptyCache = fluid.isEmpty();
     }
 
     /**
      * @reason Use cached property
-     * @author Maity
      */
-    @Overwrite
-    public boolean isEmpty() {
-        return this.isEmptyCache;
+    @Inject(method = "isEmpty", at = @At("HEAD"), cancellable = true)
+    private void useCachedIsEmpty(CallbackInfoReturnable<Boolean> cir) {
+        cir.setReturnValue(this.isEmptyCache);
     }
 }
