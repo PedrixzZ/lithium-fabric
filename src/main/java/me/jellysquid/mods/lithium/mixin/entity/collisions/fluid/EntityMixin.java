@@ -51,27 +51,34 @@ public abstract class EntityMixin {
         } else {
             return;
         }
+
         int chunkX1 = x1 >> 4;
         int chunkZ1 = z1 >> 4;
-        int chunkX2 = ((x2 - 1) >> 4);
-        int chunkZ2 = ((z2 - 1) >> 4);
+        int chunkX2 = (x2 - 1) >> 4;
+        int chunkZ2 = (z2 - 1) >> 4;
         int chunkYIndex1 = Math.max(Pos.SectionYIndex.fromBlockCoord(this.world, y1), Pos.SectionYIndex.getMinYSectionIndex(this.world));
         int chunkYIndex2 = Math.min(Pos.SectionYIndex.fromBlockCoord(this.world, y2 - 1), Pos.SectionYIndex.getMaxYSectionIndexInclusive(this.world));
-        for (int chunkX = chunkX1; chunkX <= chunkX2; chunkX++) {
-            for (int chunkZ = chunkZ1; chunkZ <= chunkZ2; chunkZ++) {
+
+        // Initialize fluidFound flag to false
+        boolean fluidFound = false;
+
+        // Loop through chunks only if fluid is not found yet
+        for (int chunkX = chunkX1; chunkX <= chunkX2 && !fluidFound; chunkX++) {
+            for (int chunkZ = chunkZ1; chunkZ <= chunkZ2 && !fluidFound; chunkZ++) {
                 Chunk chunk = this.world.getChunk(chunkX, chunkZ);
-                for (int chunkYIndex = chunkYIndex1; chunkYIndex <= chunkYIndex2; chunkYIndex++) {
+                for (int chunkYIndex = chunkYIndex1; chunkYIndex <= chunkYIndex2 && !fluidFound; chunkYIndex++) {
                     ChunkSection section = chunk.getSectionArray()[chunkYIndex];
                     if (((BlockCountingSection) section).anyMatch(blockStateFlag, true)) {
-                        //fluid found, cannot skip code
-                        return;
+                        fluidFound = true;
                     }
                 }
             }
         }
 
-        //side effects of not finding a fluid:
-        this.fluidHeight.put(tag, 0.0);
-        cir.setReturnValue(false);
+        // If fluid is not found, set the fluidHeight to 0.0 and cancel the return value
+        if (!fluidFound) {
+            this.fluidHeight.put(tag, 0.0);
+            cir.setReturnValue(false);
+        }
     }
-}
+    }
