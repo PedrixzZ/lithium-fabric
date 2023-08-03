@@ -27,9 +27,6 @@ public class StateMixin<O, S> {
 
     @Inject(method = "createWithTable", at = @At("RETURN"))
     private void postCreateWithTable(Map<Map<Property<?>, Comparable<?>>, S> states, CallbackInfo ci) {
-        if (this.owner instanceof Block || this.owner instanceof Fluid) {
-            this.withTable = new FastImmutableTable<>(this.withTable, StatePropertyTableCache.getTableCache(this.owner));
-        }
+        this.withTable = new FastImmutableTable<>(this.withTable, StatePropertyTableCache.getTableCache(this.owner));
     }
-
 }
